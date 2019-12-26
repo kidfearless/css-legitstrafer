@@ -15,8 +15,11 @@ void do_input(UINT keycode, bool b)
 	SendInput(1, &input, sizeof(input));
 }
 
+//fuck it lets just have them here
 int cur_dx = 0;
 bool should_strafe = false;
+bool holding_a = false;
+bool holding_d = false;
 
 void strafe_thread()
 {
@@ -26,21 +29,27 @@ void strafe_thread()
 		{
 			if (cur_dx == 0) //mousedx == 0
 			{
-				Sleep(rand() % 3 + 1);
+				Sleep(rand() % 5 + 2);
 				do_input(0x44, false);
 				do_input(0x41, false);
+				holding_a = false;
+				holding_d = false;
 			}
-			else if (cur_dx == 1) //mousedx > 0
+			else if (cur_dx == 1 && !holding_d) //mousedx > 0
 			{
 				do_input(0x41, false);
-				Sleep(rand() % 4 + 2);
+				holding_a = false;
+				Sleep(rand() % 6 + 4);
 				do_input(0x44, true);
+				holding_d = true;
 			}
-			else if (cur_dx == 2) //mousedx < 0
+			else if (cur_dx == 2 && !holding_a) //mousedx < 0
 			{
 				do_input(0x44, false);
-				Sleep(rand() % 4 + 2);
+				holding_d = false;
+				Sleep(rand() % 6 + 4);
 				do_input(0x41, true);
+				holding_a = true;
 			}
 		}
 	}
