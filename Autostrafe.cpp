@@ -4,22 +4,15 @@
 
 void do_input(UINT keycode, bool b)
 {
-	INPUT input;
-	input.type = INPUT_KEYBOARD;
-	memset(&input.ki, 0, sizeof(KEYBDINPUT));
-	input.ki.wScan = MapVirtualKey(keycode, MAPVK_VK_TO_VSC);
 	if (b)
-		input.ki.dwFlags = KEYEVENTF_SCANCODE;
+		keybd_event(0, MapVirtualKey(keycode, MAPVK_VK_TO_VSC), KEYEVENTF_SCANCODE, 0);
 	else
-		input.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
-	SendInput(1, &input, sizeof(input));
+		keybd_event(0, MapVirtualKey(keycode, MAPVK_VK_TO_VSC), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0);
 }
 
-//fuck it lets just have them here
 int cur_dx = 0;
 bool should_strafe = false;
-bool holding_a = false;
-bool holding_d = false;
+std::string cur_key = "...";
 
 void strafe_thread()
 {
@@ -32,24 +25,21 @@ void strafe_thread()
 				Sleep(rand() % 5 + 2);
 				do_input(0x44, false);
 				do_input(0x41, false);
-				holding_a = false;
-				holding_d = false;
+				cur_key = "...";
 			}
-			else if (cur_dx == 1 && !holding_d) //mousedx > 0
+			else if (cur_dx == 1 && cur_key != "D") //mousedx > 0
 			{
 				do_input(0x41, false);
-				holding_a = false;
 				Sleep(rand() % 6 + 4);
 				do_input(0x44, true);
-				holding_d = true;
+				cur_key = "D";
 			}
-			else if (cur_dx == 2 && !holding_a) //mousedx < 0
+			else if (cur_dx == 2 && cur_key != "A") //mousedx < 0
 			{
 				do_input(0x44, false);
-				holding_d = false;
 				Sleep(rand() % 6 + 4);
 				do_input(0x41, true);
-				holding_a = true;
+				cur_key = "A";
 			}
 		}
 	}
@@ -57,7 +47,7 @@ void strafe_thread()
 
 void autostrafe(CUserCmd* cmd)
 {
-	if (!should_strafe && cmd->buttons & (1 << 1)) //IN_JUMP
+	if (!should_strafe && cmd->buttons & (1 << 1)) //(1 << 1) == IN_JUMP
 		should_strafe = true;
 	else if (should_strafe && !(cmd->buttons & (1 << 1)))
 	{
